@@ -1,4 +1,4 @@
-# Transparent Authorship Specification (TAS)
+# Transparent Authorship Protocol (TAP)
 
 **Version:** 0.1  
 **Status:** Working Draft  
@@ -9,7 +9,7 @@
 
 ## 1. Introduction
 
-The Transparent Authorship Specification (TAS) defines a format for attributing collaborative content created by humans and AI systems. It provides machine-readable and human-readable metadata that documents who contributed what, how, and with what tools.
+The Transparent Authorship Protocol (TAP) defines a format for attributing collaborative content created by humans and AI systems. It provides machine-readable and human-readable metadata that documents who contributed what, how, and with what tools.
 
 ## 2. Terminology
 
@@ -140,7 +140,7 @@ Each block should include a visible label:
 
 ### 6.1 Zero-Knowledge Properties
 
-Authors can assert properties without revealing underlying data:
+Authors can assert properties without revealing underlying datap:
 
 - "Author is an adult" — without disclosing age
 - "Author has verified GitHub account" — without linking to it  
@@ -159,8 +159,8 @@ Contact information should be protected from scraping:
 ### 7.1 HTML Meta Tags
 
 ```html
-<meta name="ta:version" content="0.1">
-<meta name="ta:source-type" content="collaborative|ai-only|human-only">
+<meta name="tap:version" content="0.1">
+<meta name="tap:source-type" content="collaborative|ai-only|human-only">
 <meta name="generator" content="Model Name by Provider via Platform">
 <meta name="ai-generated" content="all|partially|none">
 ```
@@ -171,32 +171,32 @@ Contact information should be protected from scraping:
 {
   "@context": {
     "@vocab": "https://schema.org/",
-    "ta": "https://emerge.st/ns/transparent-authorship/"
+    "ta": "https://emerge.st/ns/tap/"
   },
   "@type": "BlogPosting",
   "headline": "Post Title",
   "datePublished": "2026-03-08",
-  "ta:specVersion": "0.1",
-  "ta:sourceType": "collaborative",
-  "ta:authors": [
+  "tap:specVersion": "0.1",
+  "tap:sourceType": "collaborative",
+  "tap:authors": [
     {
-      "ta:type": "human",
-      "ta:name": "Author Name",
-      "ta:roles": ["ideation", "review"],
-      "ta:profileUrl": "https://site.com/authors/name"
+      "tap:type": "human",
+      "tap:name": "Author Name",
+      "tap:roles": ["ideation", "review"],
+      "tap:profileUrl": "https://site.com/authors/name"
     },
     {
-      "ta:type": "ai",
-      "ta:name": "Model Name",
-      "ta:model": "model-id",
-      "ta:provider": "Provider",
-      "ta:roles": ["drafting", "research"]
+      "tap:type": "ai",
+      "tap:name": "Model Name",
+      "tap:model": "model-id",
+      "tap:provider": "Provider",
+      "tap:roles": ["drafting", "research"]
     }
   ],
-  "ta:workflow": [
-    {"ta:step": 1, "ta:action": "ideation", "ta:by": "Author Name", "ta:method": "voice"},
-    {"ta:step": 2, "ta:action": "drafting", "ta:by": "Model Name"},
-    {"ta:step": 3, "ta:action": "review", "ta:by": "Author Name"}
+  "tap:workflow": [
+    {"tap:step": 1, "tap:action": "ideation", "tap:by": "Author Name", "tap:method": "voice"},
+    {"tap:step": 2, "tap:action": "drafting", "tap:by": "Model Name"},
+    {"tap:step": 3, "tap:action": "review", "tap:by": "Author Name"}
   ]
 }
 ```
@@ -228,9 +228,9 @@ Authors can sign content using GPG/PGP:
 
 ```json
 {
-  "ta:signature": "pgp:FINGERPRINT",
-  "ta:contentHash": "sha256:HASH",
-  "ta:signedAt": "ISO-8601-TIMESTAMP"
+  "tap:signature": "pgp:FINGERPRINT",
+  "tap:contentHash": "sha256:HASH",
+  "tap:signedAt": "ISO-8601-TIMESTAMP"
 }
 ```
 
@@ -244,18 +244,18 @@ Authors can sign content using GPG/PGP:
 
 | Standard | Integration |
 |----------|-------------|
-| Schema.org | Human as `author`, AI details in `additionalProperty` with `ta:` prefix |
+| Schema.org | Human as `author`, AI details in `additionalProperty` with `tap:` prefix |
 | C2PA | Reference manifests for embedded media |
 | IPTC DST | Use `compositeWithTrainedAlgorithmicMedia` for collaborative content |
-| Dublin Core | Map `ta:authors` to `dcterms:creator` |
+| Dublin Core | Map `tap:authors` to `dcterms:creator` |
 | W3C PROV-O | Align AI authors with `prov:SoftwareAgent` |
 
 ## 11. Namespace
 
-TAS uses the namespace prefix `ta:` with the URI:
+TAP uses the namespace prefix `tap:` with the URI:
 
 ```
-https://emerge.st/ns/transparent-authorship/
+https://emerge.st/ns/tap/
 ```
 
 ## 12. Versioning

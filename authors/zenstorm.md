@@ -1,7 +1,7 @@
 # author.md — Transparent Authorship Profile
 
 ## Specification
-- **TAS Version:** 0.1
+- **TAP Version:** 0.1
 - **Profile Type:** human
 
 ## Identity

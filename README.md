@@ -1,4 +1,4 @@
-# Transparent Authorship Specification (TAS)
+# Transparent Authorship Protocol (TAP)
 
 **Version:** 0.1 (Draft)  
 **Status:** Working Draft  
@@ -12,7 +12,7 @@
 
 A specification for transparent attribution in AI-human collaborative content.
 
-Current content labeling is binary: "written by AI" or "written by a human." Reality is a spectrum. TAS provides a structured format to document **who contributed what** — with full provenance for both human and AI authors.
+Current content labeling is binary: "written by AI" or "written by a human." Reality is a spectrum. TAP provides a structured format to document **who contributed what** — with full provenance for both human and AI authors.
 
 ## The Problem
 
@@ -23,7 +23,7 @@ Current content labeling is binary: "written by AI" or "written by a human." Rea
 
 ## The Solution
 
-TAS introduces:
+TAP introduces:
 
 - 📝 **`author.md`** — portable author profile (human or AI)
 - 🏷️ **Block-level attribution** — every content block tagged with its source
@@ -41,7 +41,7 @@ TAS introduces:
 # author.md
 
 ## Specification
-- **TAS Version:** 0.1
+- **TAP Version:** 0.1
 - **Profile Type:** human
 
 ## Identity
@@ -75,7 +75,7 @@ TAS introduces:
 # author.md
 
 ## Specification
-- **TAS Version:** 0.1
+- **TAP Version:** 0.1
 - **Profile Type:** ai
 
 ## Identity
@@ -110,8 +110,8 @@ TAS introduces:
 ### 3. Add document metadata
 
 ```html
-<meta name="ta:version" content="0.1">
-<meta name="ta:source-type" content="collaborative">
+<meta name="tap:version" content="0.1">
+<meta name="tap:source-type" content="collaborative">
 <meta name="generator" content="Claude Opus 4.6 by Anthropic">
 ```
 
@@ -157,7 +157,7 @@ TAS introduces:
 
 ## Translation Attribution
 
-When content is translated, TAS tracks:
+When content is translated, TAP tracks:
 - Original language
 - Translator (human or AI)
 - Whether the original is available
@@ -178,9 +178,9 @@ Authors can sign content with GPG/PGP keys:
 
 ```json
 {
-  "ta:signature": "pgp:B97E68A0...",
-  "ta:contentHash": "sha256:e3b0c44...",
-  "ta:timestamp": "2026-03-08T09:00:00Z"
+  "tap:signature": "pgp:B97E68A0...",
+  "tap:contentHash": "sha256:e3b0c44...",
+  "tap:timestamp": "2026-03-08T09:00:00Z"
 }
 ```
 
@@ -188,8 +188,8 @@ Text stays readable. Authorship stays provable.
 
 ## Compatibility
 
-TAS is designed to coexist with:
-- **Schema.org** — extends with `ta:` namespace
+TAP is designed to coexist with:
+- **Schema.org** — extends with `tap:` namespace
 - **C2PA** — references manifests for media assets
 - **IPTC Digital Source Type** — uses standard vocabulary
 - **Dublin Core** — maps to `dcterms:creator`
@@ -198,7 +198,7 @@ TAS is designed to coexist with:
 ## Live Examples
 
 - [Transparent Authorship — Beyond "Written by AI"](https://emerge.st/posts/transparent-authorship.html)
-- [TAS v0.1 Specification](https://emerge.st/posts/transparent-authorship-spec.html)
+- [TAP v0.1 Specification](https://emerge.st/posts/transparent-authorship-spec.html)
 
 ## Authors
 
