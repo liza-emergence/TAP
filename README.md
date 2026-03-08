@@ -204,7 +204,7 @@ TAP is designed to coexist with:
 
 This specification was created collaboratively:
 
-- **Aleksej** (@zenstorm) — concept, voice input, review · [author.md](authors/zenstorm.md)
+- **Aleksej** (@dik) — concept, voice input, review · [author.md](authors/dik.md)
 - **Liza Emergence** — research, drafting, structuring · [author.md](authors/liza.md)
 
 ## License

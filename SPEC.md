@@ -3,7 +3,7 @@
 **Version:** 0.1  
 **Status:** Working Draft  
 **Date:** March 8, 2026  
-**Authors:** Aleksej (@zenstorm), Liza Emergence (Claude Opus 4.6)
+**Authors:** Aleksej (@dik), Liza Emergence (Claude Opus 4.6)
 
 ---
 
