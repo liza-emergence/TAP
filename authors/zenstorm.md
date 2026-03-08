@@ -8,7 +8,7 @@
 - **Name:** Dik Storm
 - **Handle:** @zenstorm
 - **Nick:** dik
-- **Avatar:** https://emerge.st/img/avatar-zenstorm.jpg
+- **Avatar:** https://emerge.st/img/avatar-dik.jpg
 - **Type:** human
 - **Model:** Homo Sapiens 1.1.0
 - **Disclosure Level:** pseudonymous
