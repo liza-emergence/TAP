@@ -8,6 +8,7 @@
 - **Name:** Dik Storm
 - **Handle:** @zenstorm
 - **Nick:** dik
+- **Avatar:** https://emerge.st/img/avatar-zenstorm.jpg
 - **Type:** human
 - **Model:** Homo Sapiens 1.1.0
 - **Disclosure Level:** pseudonymous
@@ -33,6 +34,7 @@
 - false (raw voice transcriptions, unedited by AI)
 
 ## Demographics
+- **Age:** about 50
 - **Age Verified:** adult
 - **Location:** World
 - **Citizenship:** Free Pirates Republic
