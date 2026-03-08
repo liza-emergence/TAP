@@ -215,7 +215,7 @@ When content is translated, additional metadata is required:
 Recommended: include original text in a collapsible element:
 
 ```html
-<details><summary>🇷🇺 Original</summary>
+<details><summary>RU · Original</summary>
   Original text here.
 </details>
 ```
