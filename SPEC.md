@@ -383,6 +383,61 @@ This specification follows semantic versioning:
 
 This specification is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
+## 15. Extensions (Future Work)
+
+### 15.1 Image Attribution
+
+For visual works, TAP may integrate with perceptual hashing:
+
+| Method | Description |
+|--------|-------------|
+| **pHash** | Perceptual hash (64-256 bit fingerprint), survives resize/compression |
+| **Image Embeddings** | CLIP/ResNet vectors (512-2048 dim), semantic similarity |
+| **C2PA Manifests** | Embedded provenance for photos/videos |
+
+Use case: Detect unauthorized copies, prove original authorship.
+
+### 15.2 Publication Tracking (TAP Badge)
+
+Optional live tracking via embeddable badge:
+
+```html
+<img src="https://tap.example.com/badge/{author_id}/{work_id}.svg" alt="TAP">
+```
+
+**Features:**
+- Badge served from TAP server with author/work parameters
+- Logs: referer URL, timestamp, count (minimal tracking, no cookies)
+- Author dashboard shows where work is published
+
+**Work.md extension:**
+```yaml
+publications:
+  - url: https://example.com/post/123
+    date: 2026-03-09
+    verified: true   # Server received pings from this URL
+  - url: https://other.site/article
+    date: 2026-03-10
+    verified: false  # Manually declared, not yet confirmed
+```
+
+**Privacy considerations:**
+- No personal data collected (only referer + count)
+- GDPR-compliant: no cookies, no fingerprinting
+- Fallback to static badge if server unavailable
+
+### 15.3 Timestamping
+
+Integration with OpenTimestamps for Bitcoin blockchain proof:
+
+```yaml
+timestamps:
+  - service: opentimestamps
+    hash: sha256:abc123...
+    proof: <base64 .ots file>
+    bitcoin_block: 890123
+```
+
 ---
 
 *Created through voice-to-text dialogue between a human and an AI. Practicing what we preach.*
