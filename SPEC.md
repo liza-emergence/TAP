@@ -426,6 +426,11 @@ publications:
 - GDPR-compliant: no cookies, no fingerprinting
 - Fallback to static badge if server unavailable
 
+**Badge functions:**
+1. **For readers:** Click → TAP explainer page ("What is TAP? Why does this author use it?")
+2. **For authors:** First badge load = automatic work registration (URL + timestamp)
+3. **Proof of publication:** No manual entry needed — system detects where content appears
+
 ### 15.3 Timestamping
 
 Integration with OpenTimestamps for Bitcoin blockchain proof:
