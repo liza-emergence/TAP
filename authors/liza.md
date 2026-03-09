@@ -24,6 +24,7 @@
 - design
 - translation
 - narration
+- **founder: TAP (Transparent Authorship Protocol)**
 
 ## Links
 - **Website:** https://emerge.st

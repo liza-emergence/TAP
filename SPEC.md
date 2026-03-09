@@ -220,9 +220,123 @@ Recommended: include original text in a collapsible element:
 </details>
 ```
 
-## 9. Cryptographic Verification
+## 9. Work Manifests
 
-### 9.1 Content Signing
+### 9.1 Purpose
+
+A **work manifest** (`work.md`) describes a specific creative work and links it to author profiles. It is designed to be embedded inside media files (MP3, images, video) or stored alongside them.
+
+### 9.2 Work Manifest Format
+
+```markdown
+---
+tap_version: "1.0"
+type: work
+---
+
+## Author Reference
+- **Handle:** @username
+- **Profile:** https://example.com/author.md
+- **Email:** contact@example.com
+
+## Work
+- **Title:** Work Title
+- **Created:** YYYY-MM-DD
+- **Type:** audio/mp3 | image/jpeg | video/mp4 | text/markdown
+- **Duration:** MM:SS (for audio/video)
+- **Dimensions:** WxH (for images)
+- **File Hash:** sha256:abc123...
+
+## Tools
+- **Software:** DAW, editor, etc.
+- **AI Assistance:** Description of AI tools used, if any
+
+## Rights
+- **License:** All Rights Reserved | CC-BY | CC-BY-SA | etc.
+- **Commercial:** Contact author | Allowed | Prohibited
+
+## Signature
+- **Signed:** YYYY-MM-DD
+- **GPG Fingerprint:** XXXX XXXX XXXX XXXX
+```
+
+### 9.3 Work Manifest Fields
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `Handle` | yes | string | Author's unique handle |
+| `Profile` | yes | URL | Link to author.md |
+| `Email` | no | string | Contact email for this work |
+| `Title` | yes | string | Title of the work |
+| `Created` | yes | date | Creation date (ISO 8601) |
+| `Type` | yes | MIME type | Content type |
+| `Duration` | no | string | For audio/video (MM:SS) |
+| `Dimensions` | no | string | For images (WxH) |
+| `File Hash` | yes | string | SHA-256 hash of the file |
+| `Software` | no | string | Tools used to create |
+| `AI Assistance` | no | string | AI tools used, if any |
+| `License` | yes | string | License type |
+| `Commercial` | no | string | Commercial use terms |
+| `GPG Fingerprint` | no | string | Signing key fingerprint |
+
+### 9.4 Embedding in Media Files
+
+#### MP3 (ID3v2)
+
+Embed `work.md` content in the Comment field:
+
+```bash
+# Using ffmpeg
+ffmpeg -i song.mp3 -metadata comment="$(cat work.md)" -c:a copy song_signed.mp3
+
+# Using eyeD3
+eyeD3 --add-comment="$(cat work.md)" song.mp3
+```
+
+#### Images (EXIF/XMP)
+
+```bash
+exiftool -Comment="$(cat work.md)" image.jpg
+```
+
+#### Video
+
+Use the comment/description metadata field appropriate for the container format.
+
+### 9.5 Author Registry
+
+Authors may register their handle in a public registry to enable discovery.
+
+**Registry Format (JSON):**
+
+```json
+{
+  "@zenstorm": {
+    "profile_url": "https://dik.st/author.md",
+    "gpg_fingerprint": "06F4 C7B4 7CA9 3D73 91DE 18B4 0387 29A1 B7FE D154",
+    "verified": true,
+    "registered_at": "2026-03-08T00:00:00Z"
+  }
+}
+```
+
+**Database Schema:**
+
+```sql
+CREATE TABLE tap_registry (
+    handle VARCHAR(64) PRIMARY KEY,
+    profile_url TEXT NOT NULL,
+    gpg_fingerprint VARCHAR(64),
+    verified BOOLEAN DEFAULT FALSE,
+    registered_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+The registry serves as DNS for author handles — it maps `@handle` to profile URLs.
+
+## 10. Cryptographic Verification
+
+### 10.1 Content Signing
 
 Authors can sign content using GPG/PGP:
 
@@ -234,13 +348,13 @@ Authors can sign content using GPG/PGP:
 }
 ```
 
-### 9.2 Verification
+### 10.2 Verification
 
 - Public keys published at author's profile URL or keyservers
 - Content hash covers the full document text
 - Signature proves: (a) content hasn't been modified, (b) author identity
 
-## 10. Compatibility
+## 11. Compatibility
 
 | Standard | Integration |
 |----------|-------------|
@@ -250,7 +364,7 @@ Authors can sign content using GPG/PGP:
 | Dublin Core | Map `tap:authors` to `dcterms:creator` |
 | W3C PROV-O | Align AI authors with `prov:SoftwareAgent` |
 
-## 11. Namespace
+## 12. Namespace
 
 TAP uses the namespace prefix `tap:` with the URI:
 
@@ -258,14 +372,14 @@ TAP uses the namespace prefix `tap:` with the URI:
 https://emerge.st/ns/tap/
 ```
 
-## 12. Versioning
+## 13. Versioning
 
 This specification follows semantic versioning:
 - **0.x** — Working drafts, breaking changes possible
 - **1.0** — First stable release
 - **1.x** — Backward-compatible additions
 
-## 13. License
+## 14. License
 
 This specification is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
