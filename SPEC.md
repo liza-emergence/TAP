@@ -443,6 +443,114 @@ timestamps:
     bitcoin_block: 890123
 ```
 
+### 15.4 Jurisdiction Field
+
+Authors may specify legal jurisdiction for rights enforcement:
+
+```yaml
+# In author.md
+Jurisdiction: LV    # ISO 3166-1 alpha-2 country code
+```
+
+This indicates under which country's law the author expects to seek protection. Multiple jurisdictions can be listed for international authors.
+
+### 15.5 License Declaration in work.md
+
+Explicit license in work manifest strengthens legal position:
+
+```yaml
+# In work.md
+License: CC-BY-4.0           # SPDX identifier preferred
+License-URL: https://creativecommons.org/licenses/by/4.0/
+Rights: All Rights Reserved  # Alternative to open license
+```
+
+### 15.6 Author vs Tools Clarification
+
+**Critical distinction in TAP:**
+
+```yaml
+# Author = Rights holder (human creator)
+Author: @aleksej
+Type: human
+Rights: copyright-holder
+
+# Tools = Instruments used (no rights)
+Tools:
+  - name: Claude
+    type: AI-assistant
+    contribution: text-drafting
+    rights: none           # Explicitly: tools hold no rights
+  - name: VS Code
+    type: editor
+    contribution: formatting
+    rights: none
+```
+
+AI systems are **tools**, not **authors** in the legal sense. TAP documents their contribution for transparency, not to assign rights.
+
+### 15.7 Identity Verification (GPG Binding)
+
+Optional binding of GPG key to verifiable identities:
+
+| Method | Description |
+|--------|-------------|
+| **Keybase Proofs** | Link GPG to Twitter, GitHub, domain via Keybase |
+| **GitHub Verified** | GPG key associated with verified GitHub account |
+| **DNS DKIM/TXT** | Domain ownership proves email control |
+| **Notarized** | Physical notarization of key fingerprint |
+
+```yaml
+# In author.md
+GPG-Fingerprint: 1234 5678 90AB CDEF ...
+Identity-Proofs:
+  - service: github
+    username: aleksej
+    verified: true
+  - service: keybase
+    username: zenstorm
+    verified: true
+  - service: domain
+    domain: example.com
+    record: TXT _tap.example.com
+```
+
+### 15.8 Handle Discovery (DNS TXT / IPFS)
+
+Mechanism for resolving TAP handles to public keys:
+
+**Option A: DNS TXT record**
+```
+_tap.example.com TXT "tap=v1;key=fingerprint;author=https://example.com/author.md"
+```
+
+**Option B: IPFS registry**
+```
+/ipns/tap.registry.eth/@handle → author.md CID
+```
+
+This enables verification without central authority.
+
+### 15.9 Publication Certificate
+
+Automatic proof-of-publication workflow:
+
+1. **First publish:** Work goes live with TAP badge
+2. **Auto-snapshot:** Server triggers archive.org capture
+3. **Timestamp:** OpenTimestamps proof created
+4. **Certificate generated:**
+
+```yaml
+publication_certificate:
+  url: https://example.com/article
+  first_seen: 2026-03-09T14:30:00Z
+  archive_url: https://web.archive.org/web/20260309/...
+  timestamp_proof: opentimestamps_hash
+  badge_pings: 47
+```
+
+This creates independent evidence trail without author action.
+
 ---
 
 *Created through voice-to-text dialogue between a human and an AI. Practicing what we preach.*
