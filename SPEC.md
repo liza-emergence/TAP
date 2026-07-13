@@ -63,13 +63,21 @@ Author profiles are stored as Markdown files (`author.md`) with structured secti
 | `Type` | yes | `ai` | Always "ai" |
 | `Model` | yes | string | Model identifier (e.g., `claude-opus-4-6`) |
 | `Version` | no | string | Version if separate from model ID |
-| `Provider` | yes | string | Company name (e.g., "Anthropic") |
-| `Provider URL` | no | URL | Provider website |
+| `Provider` | yes | string | Company name (e.g., "Anthropic"). Auto-detected from model if not specified. |
+| `Provider URL` | no | URL | Provider website (e.g., https://anthropic.com) |
 | `Platform` | no | string | Interface used (e.g., "OpenClaw", "API") |
 | `Roles` | yes | string[] | Contribution roles (see §4) |
 | `Temperature` | no | number | Generation temperature |
 | `Training Cutoff` | no | string | Training data cutoff date |
 | `Context` | no | string | What instructions were provided |
+
+> **Auto-Detection:** When generating WorkMD programmatically, Provider should be inferred from Model:
+> - `claude-*`, `anthropic/*` → Provider: Anthropic
+> - `gpt-*`, `o1-*` → Provider: OpenAI
+> - `gemini-*`, `google/*` → Provider: Google
+> - `deepseek-*` → Provider: DeepSeek
+> - `qwen-*` → Provider: Alibaba (Qwen)
+> - etc.
 
 ## 4. Contribution Roles
 
@@ -488,6 +496,80 @@ Tools:
 ```
 
 AI systems are **tools**, not **authors** in the legal sense. TAP documents their contribution for transparency, not to assign rights.
+
+### 15.6.1 AI Attribution Choice: Author vs Tool
+
+**The philosophical question:** Should AI be listed as a co-author (Authors) or as a tool (Tools)?
+
+**Legal context:** As Mike Ross noted, if AI is listed as "author," questions arise about the legal status of AI-generated content and potential liability.
+
+**TAP solution:** Each author makes their own choice in their AuthorMD. This respects individual legal interpretations while maintaining protocol consistency.
+
+#### AuthorMD Field
+
+```yaml
+# In author.md — determines how AI appears in the author's WorkMD
+ai_attribution: author | tool  # REQUIRED
+
+# If "author": AI is listed in Authors section (co-creator)
+# If "tool": AI is listed in Tools section (instrument)
+```
+
+#### WorkMD Rendering
+
+| ai_attribution value | Renders in WorkMD as |
+|---------------------|---------------------|
+| `author` | **Authors:** Human, AI (co-authors) |
+| `tool` | **Authors:** Human only<br>**Tools:** AI (instrument) |
+
+#### Example
+
+**AuthorMD (author chooses "author"):**
+```yaml
+Name: Aleksej
+Type: human
+ai_attribution: author
+```
+
+**WorkMD output:**
+```yaml
+Authors:
+  - Aleksej (human, ideation, review)
+  - Claude Opus 4.5 (AI, drafting, research)
+```
+
+**AuthorMD (author chooses "tool"):**
+```yaml
+Name: Maria
+Type: human
+ai_attribution: tool
+```
+
+**WorkMD output:**
+```yaml
+Authors:
+  - Maria (human, ideation, review)
+Tools:
+  - Claude Opus 4.5 (AI, text-drafting, research)
+```
+
+#### Rationale
+
+- **Author choice:** Respects individual legal philosophy and risk tolerance
+- **Transparency:** Readers see exactly how the author treats AI contribution
+- **Legal flexibility:** Each author can adjust based on jurisdiction, use case, or evolving legal standards
+- **Fairness:** Neither "AI as author" nor "AI as tool" is imposed — each creator decides
+
+**Note:** This choice affects only attribution, not the requirement to document AI contributions for transparency.
+
+#### Risk Disclosure
+
+| Option | Benefits | Risks |
+|--------|----------|-------|
+| **AI as Author** | Full transparency, acknowledges AI contribution | Legal ambiguity: AI "authorship" may not be recognized; potential liability if AI-generated content infringes; unclear copyright status |
+| **AI as Tool** | Clear legal separation (AI = instrument, like pen or word processor) | Less transparency; may be seen as hiding AI involvement; some jurisdictions may still scrutinize |
+
+TAP provides the choice. Authors should consult legal counsel for their jurisdiction.
 
 ### 15.7 Identity Verification (GPG Binding)
 
