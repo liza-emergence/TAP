@@ -1,4 +1,6 @@
-# Transparent Authorship Protocol (TAP)
+# Emergenti TAP · Transparent Authorship Protocol
+
+*Namespaced brand for the Transparent Authorship Protocol; wordmark **EmergentI**, short form **eiTAP**. Qualified to avoid collision with other "TAP" protocols. [Why the name](https://emergenti.dev/clarifying-the-name-emergenti-tap/).*
 
 **Version:** 0.1 (Draft)  
 **Status:** Working Draft  
