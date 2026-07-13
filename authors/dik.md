@@ -6,7 +6,7 @@
 
 ## Identity
 - **Name:** Dik Storm
-- **Handle:** @zenstorm
+- **Handle:** dik
 - **Nick:** dik
 - **Avatar:** https://emerge.st/img/avatar-dik.jpg
 - **Type:** human
