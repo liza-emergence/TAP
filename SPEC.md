@@ -1,3 +1,28 @@
+---
+tap_version: 0.2
+title: Emergenti TAP - Transparent Authorship Protocol
+source_type: collaborative
+authors:
+  - type: human
+    name: Alex
+    handle: "@shelly-im"
+    roles: [ideation, review]
+  - type: ai
+    name: Claude Sonnet 5
+    model: claude-sonnet-5
+    provider: anthropic
+    platform: claude-code
+    roles: [drafting]
+  - type: ai
+    name: Claude Opus 4.8
+    model: claude-opus-4-8
+    provider: anthropic
+    platform: claude-code
+    roles: [synthesis, review]
+updated: 2026-07-18
+visibility: public
+---
+
 # Emergenti TAP - Transparent Authorship Protocol
 
 **Version:** 0.2 · **Status:** Working Draft · **Date:** 2026-07-18 · **License:** CC BY 4.0
