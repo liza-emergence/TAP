@@ -427,11 +427,53 @@ Semantic: `0.x` are drafts, `1.0` is the first stable. This document is `0.2`.
 
 CC BY 4.0.
 
+# Timestamp & Immutability
+
+TAP declares WHO made something; timestamps prove WHEN and that the record has not changed since.
+This section is cross-profile: the same principle applies to a web page, a file, or a commit.
+
+## Levels
+
+1. **Git timestamp** (Profile: Git). Every commit already carries an author date and committer
+   date. Combined with `TAP-*` trailers, this yields a per-change provenance timeline at no
+   extra cost. Limitation: git history can be rewritten (`rebase`, `filter-branch`), so the
+   timestamp is trustworthy only to the extent the repository host is.
+
+2. **Archive.org snapshot** (Profile: Web, recommended). The Internet Archive's "Save Page Now"
+   service (`https://web.archive.org/save/`) captures a public URL and stores it under the
+   Archive.org domain with a timestamped path (`/web/YYYYMMDDHHmmss/`). The snapshot is
+   immutable and third-party - the author cannot alter it after the fact.
+
+   This is the RECOMMENDED default for web content: free, no tooling beyond an HTTP POST,
+   no cryptographic setup, and universally verifiable by clicking a link. It answers the
+   question "was this page really published on the date it claims?" without trusting the author.
+
+   Integration pattern (reference implementation in `wordpress/archive-snapshot.php`):
+   - On publish, POST the page URL to `https://web.archive.org/save/`.
+   - Store the returned snapshot URL alongside the content.
+   - Display the snapshot link in the TAP footer or via shortcode.
+   - Respect rate limits (~15 req/min, ~1000/day); retry on 429.
+
+   User-agent convention: `TAP-<Platform>/0.x (+https://emergenti.dev)`.
+
+3. **OpenTimestamps** (optional, for cryptographic rigor). OTS embeds a hash in a Bitcoin
+   transaction, providing a tamper-proof timestamp independent of any single server. Useful
+   for legal/compliance contexts where Archive.org's editorial discretion is insufficient.
+   TAP does not specify OTS mechanics - it defers to the OTS protocol - but recognizes OTS
+   as a valid complementary layer and notes that TAP-stamped files with `.ots` sidecar files
+   MUST NOT be modified (the hash would break).
+
+## Choosing a level
+
+Most authors need only level 2 (Archive.org). Level 1 comes free with git. Level 3 is for
+contexts where immutability must survive the disappearance of a third-party service.
+All three can coexist on the same artifact.
+
 # Future (trimmed from v0.1 §15)
 
-Image attribution (pHash/embeddings/C2PA), TAP Badge publication tracking, OpenTimestamps and
-Archive.org immutable stamps, jurisdiction tags, GPG identity binding, handle discovery (DNS
-TXT/IPFS). Kept as a short appendix, out of the normative body.
+Image attribution (pHash/embeddings/C2PA), TAP Badge publication tracking,
+jurisdiction tags, GPG identity binding, handle discovery (DNS TXT/IPFS).
+Kept as a short appendix, out of the normative body.
 
 ---
 
@@ -444,4 +486,5 @@ TXT/IPFS). Kept as a short appendix, out of the normative body.
 - Web profile: made JSON-LD `author` + **`sameAs`** MUST-SHIP (closing the live gap).
 - Normalized model ids to exact lowercase (`claude-opus-4-8`).
 - `platform`/`provider` explicitly optional, Disclosure-gated.
+- Added **Timestamp & Immutability** cross-profile section (git timestamps, Archive.org snapshots, OpenTimestamps).
 - Trimmed speculative v0.1 §15 into a short Future appendix.
