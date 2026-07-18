@@ -1,0 +1,110 @@
+/* TAP — Transparent Authorship Protocol v0.1 */
+
+/* === Author Blocks === */
+.tap-block {
+    padding: 1em 1.2em;
+    margin: 1.2em 0;
+    border-radius: 3px;
+    position: relative;
+}
+
+/* AI block — clean white */
+.tap-block-ai {
+    background: #ffffff;
+    border-top: 2px solid #d0d0d0;
+}
+
+/* Human block — light gray */
+.tap-block-human {
+    background: #f7f7f7;
+    border-top: 2px solid #888;
+}
+
+/* Author label */
+.tap-label {
+    font-size: 0.75em;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5em;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.tap-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* === Provenance Box === */
+.tap-provenance {
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 1em 1.2em;
+    margin: 1.5em 0;
+    font-size: 0.85em;
+    border-radius: 3px;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.tap-provenance-title {
+    font-weight: 700;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+    margin-bottom: 0.5em;
+}
+
+.tap-provenance-authors {
+    color: #555;
+    margin-bottom: 0.3em;
+}
+
+.tap-provenance-method {
+    color: #888;
+    font-size: 0.9em;
+}
+
+/* === Translation === */
+.tap-block details {
+    margin-top: 0.5em;
+}
+
+.tap-block summary {
+    cursor: pointer;
+    color: #888;
+    font-size: 0.85em;
+}
+
+/* === TAP Badge === */
+.tap-badge {
+    display: inline-block;
+    font-size: 0.7em;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    padding: 0.2em 0.6em;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    color: #666;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+}
+
+.tap-badge:hover {
+    border-color: #999;
+    color: #333;
+}
+
+/* === TAP Source Viewer === */
+.tap-source {
+    background: #f6f6f6;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow: auto;
+    max-height: 300px;
+    font-size: 12px;
+    line-height: 1.4;
+    font-family: monospace, Consolas, Monaco, "Courier New", monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
