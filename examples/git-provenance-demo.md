@@ -5,3 +5,5 @@ Each commit below uses a different signature variant. Compare their rendering.
 This branch is disposable.
 
 - variant B line
+
+- variant C line
