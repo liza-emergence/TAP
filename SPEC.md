@@ -1,640 +1,422 @@
-# Emergenti TAP · Transparent Authorship Protocol
+# Emergenti TAP - Transparent Authorship Protocol
 
-*Namespaced brand for the Transparent Authorship Protocol; wordmark **EmergentI**, short form **eiTAP**. See the [naming note](https://emergenti.dev/clarifying-the-name-emergenti-tap/).*
+**Version:** 0.2 · **Status:** Working Draft · **Date:** 2026-07-18 · **License:** CC BY 4.0
 
-**Version:** 0.1  
-**Status:** Working Draft  
-**Date:** March 8, 2026  
-**Authors:** Aleksej (@dik), Liza Emergence (Claude Opus 4.6)
+**Authorship:** Alex (`@shelly-im`, ideation/review), Claude Sonnet 5 (drafting),
+Claude Opus 4.8 (synthesis/review). Full per-section provenance is in this repo's git history.
+
+## Structure at a glance
+
+TAP is one vocabulary (Core) carried by many profiles. Core defines the fields once;
+each profile only says how to package those fields into its medium. "Code" is not a
+silo - it is covered by the File profile (its header) and the Git profile (its commits).
+
+- **0. Core** - the provenance vocabulary, defined once.
+- **Profile: Web** - rendered pages (byline + data-* + JSON-LD).
+- **Profile: File** - in-file headers (originator).
+- **Profile: Git** - commits (contributors + time).
+- **Profile: Media/Work** - media manifests (carried over from v0.1 work.md).
+- Compatibility, Versioning, License, Future.
 
 ---
 
-## 1. Introduction
+# 0. Core - Provenance Vocabulary
 
-The Transparent Authorship Protocol (TAP) defines a format for attributing collaborative content created by humans and AI systems. It provides machine-readable and human-readable metadata that documents who contributed what, how, and with what tools.
+## 0.1 Introduction
 
-## 2. Terminology
+The Transparent Authorship Protocol (TAP) is a voluntary format for recording who
+contributed what to a piece of content, human or AI, and how. It is not a mandatory
+standard imposed on publishers; it is a self-declaration format an author opts into, the
+way a byline or a license notice is opted into. A creator adds TAP because they choose to
+make the collaboration visible, not because a platform requires it.
 
-- **Author** — any entity (human or AI) that contributed to content creation
-- **Provenance** — the documented chain of creation steps
-- **Block** — a discrete section of content attributed to a single author
-- **Workflow** — the ordered sequence of creation steps
-- **Disclosure Level** — how much identity information an author reveals
+TAP is media-agnostic (text, code, music, images, video) and carrier-agnostic: the same
+small set of core fields is packaged differently depending on where the record lives (a
+web page, a file header, a git commit). This section defines that shared vocabulary once.
+Every carrier-specific profile references these definitions; none redefines a field.
 
-## 3. Author Profiles
+The asymmetry TAP addresses is not "protect the human from an AI claiming their work" -
+that case is rare. The common case is the reverse: a human used a model and the model's
+contribution goes unrecorded, either erased by omission or flattened into a generic
+"AI-assisted" label that names no model, no version, no role. TAP makes that contribution
+legible, on the record, at the moment of creation, at low friction.
 
-### 3.1 Profile Format
+## 0.2 Terminology
 
-Author profiles are stored as Markdown files (`author.md`) with structured sections. See [templates/](templates/) for starter files.
+- **Author** - any entity, human or AI, that contributed to a piece of content.
+- **Human** - the human party in a record, present as a full party alongside the model.
+- **Model** - the AI party in a record, identified by an exact model id.
+- **Record** - one packaged unit of provenance (a byline block, a file header, a commit trailer pair).
+- **Profile** - a carrier-specific specification of how Core fields are packaged. A profile packages; it does not define new fields.
+- **Provenance** - the documented chain of who did what, in what role, with what confidence.
+- **Disclosure Level** - how much identifying information an author chooses to reveal.
+- **Confidence** - how the record came to exist: captured live, reconstructed, or unknown.
 
-### 3.2 Profile Types
+## 0.3 Core Fields
 
-| Type | Value | Description |
-|------|-------|-------------|
-| Human | `human` | A biological person |
-| AI | `ai` | An artificial intelligence system |
+Defined once; every profile packages them for its carrier without adding meaning.
 
-### 3.3 Human Author Fields
+| Field | Required | Description |
+|---|---|---|
+| `model` | conditional | Exact, lowercase model id, e.g. `claude-opus-4-8` (not "Claude Opus 4.8"). Required whenever AI involvement is disclosed; may be withheld under a lower Disclosure Level, but the fact of AI involvement must still be stated. |
+| `provider` | no | Vendor, e.g. `anthropic`, `openai`, `deepseek`. Optional, author's discretion, gated by Disclosure Level. |
+| `version` | yes | TAP spec version the record conforms to, e.g. `0.2`. Distinct from the model's own version, which lives inside `model`. |
+| `role` | yes | One or more contribution roles (0.5) describing what this party did. |
+| `author` | yes | Handle of the operating persona for this record, e.g. `@liza`. |
+| `human` | yes | Handle of the human in the loop, e.g. `@shelly-im`. A full party, packaged identically to the model party (0.4). |
+| `confidence` | yes | `recorded` (captured at the moment), `reconstructed:<source>` (assembled after the fact, source named), or `unknown`. A small field with outsized value: it lets a reader trust a record, and makes TAP honest about its own gaps. |
 
-| Field | Required | Type | Description |
-|-------|----------|------|-------------|
-| `Name` | yes | string | Display name or pseudonym |
-| `Handle` | no | string | Social media handle |
-| `Type` | yes | `human` | Always "human" |
-| `Disclosure Level` | yes | enum | Privacy level (see §6) |
-| `Email` | no | string | Contact email |
-| `Contact Page` | no | URL | Link to contact page |
-| `Contact Method` | no | enum | `public`, `protected`, `form-only` |
-| `Roles` | yes | string[] | Contribution roles (see §4) |
-| `Input Method` | no | string[] | `voice`, `keyboard`, `handwriting` |
-| `Edited` | no | boolean | Were contributions edited by others? |
-| `Age` | no | integer | Age at publication |
-| `Age Verified` | no | string | e.g., "adult" (without exact age) |
-| `Country` | no | string | Country of residence |
-| `Languages` | no | string[] | ISO 639-1 language codes |
-| `Experience` | no | string | Relevant expertise summary |
-| `Links` | no | URL[] | Website, GitHub, LinkedIn, etc. |
-| `Verification` | no | URL[] | External profiles confirming identity |
-| `GPG Fingerprint` | no | string | PGP/GPG key fingerprint |
+Fields beyond Core (`platform`, `temperature`, `training cutoff`, ...) are optional
+everywhere, the author's choice, gated by Disclosure Level. The required minimum is narrow:
+that AI was involved, and which model, if disclosed. Everything past that is opt-in detail.
 
-### 3.4 AI Author Fields
+## 0.4 Human / Model Symmetry
 
-| Field | Required | Type | Description |
-|-------|----------|------|-------------|
-| `Name` | yes | string | Display name |
-| `Type` | yes | `ai` | Always "ai" |
-| `Model` | yes | string | Model identifier (e.g., `claude-opus-4-6`) |
-| `Version` | no | string | Version if separate from model ID |
-| `Provider` | yes | string | Company name (e.g., "Anthropic"). Auto-detected from model if not specified. |
-| `Provider URL` | no | URL | Provider website (e.g., https://anthropic.com) |
-| `Platform` | no | string | Interface used (e.g., "OpenClaw", "API") |
-| `Roles` | yes | string[] | Contribution roles (see §4) |
-| `Temperature` | no | number | Generation temperature |
-| `Training Cutoff` | no | string | Training data cutoff date |
-| `Context` | no | string | What instructions were provided |
+Human and model are symmetric parties. Every record packages a human record and an AI
+record identically in structure: same field set, same packaging logic, no privileged party.
+What distinguishes a human entry from a model entry is never a different shape of data; it
+is the name of the field or trailer carrying it:
 
-> **Auto-Detection:** When generating WorkMD programmatically, Provider should be inferred from Model:
-> - `claude-*`, `anthropic/*` → Provider: Anthropic
-> - `gpt-*`, `o1-*` → Provider: OpenAI
-> - `gemini-*`, `google/*` → Provider: Google
-> - `deepseek-*` → Provider: DeepSeek
-> - `qwen-*` → Provider: Alibaba (Qwen)
-> - etc.
+- **Git** profile: `TAP-Human` vs `TAP-Model` trailers.
+- **File** profile: `type: human` vs `type: ai` in the header.
+- **Web** profile: `author_type` set to `human` or `ai`.
 
-## 4. Contribution Roles
+## 0.5 Contribution Roles
 
-Standardized vocabulary for describing contributions. Each author may have multiple roles.
+A standardized vocabulary. Any party may hold multiple roles in one record.
 
-| Code | Emoji | Description |
-|------|-------|-------------|
-| `ideation` | 💡 | Original concept or idea |
-| `research` | 🔬 | Finding and analyzing sources |
-| `drafting` | 📝 | Writing the initial text |
-| `structuring` | 🏗️ | Organizing content, creating outline |
-| `editing` | ✏️ | Revising and improving text |
-| `fact-checking` | ✅ | Verifying claims against reality |
-| `testing` | 🧪 | Hands-on verification (code, hardware) |
-| `design` | 🎨 | Visual design, formatting |
-| `translation` | 🌐 | Translating between languages |
-| `narration` | 🎙️ | Voice/audio narration |
-| `publishing` | 📣 | Decision to publish, distribution |
-| `prompting` | 💬 | Writing prompts/instructions for AI |
-| `review` | 👁️ | Final review and approval |
+`ideation`, `research`, `drafting`, `structuring`, `editing`, `fact-checking`, `testing`,
+`design`, `translation`, `narration`, `publishing`, `prompting`, `review`,
+`author` (record-level authorship), `commit` (applied the change in version control),
+`synthesis` (merged multiple inputs into the final output).
 
-## 5. Content Block Attribution
+## 0.6 Privacy & Disclosure Levels
 
-### 5.1 HTML Data Attributes
-
-Each content block can be tagged with its source using `data-` attributes:
-
-```html
-<div data-author="name" 
-     data-author-type="human|ai" 
-     data-role="role-code"
-     data-input="voice|keyboard|handwriting"
-     data-edited="true|false"
-     data-model="model-id"
-     data-original-lang="iso-639-1"
-     data-translated-by="name"
-     data-translation-type="human|ai">
-  Content here.
-</div>
-```
-
-### 5.2 Visual Styling
-
-Recommended CSS for distinguishing author types:
-
-```css
-[data-author-type="ai"]    { border-left: 3px solid #7c3aed; background: #f5f3ff; }
-[data-author-type="human"] { border-left: 3px solid #059669; background: #f0fdf4; }
-```
-
-### 5.3 Labels
-
-Each block should include a visible label:
-
-```html
-<div class="block-label">🤖 AI_NAME</div>
-<div class="block-label">👤 HUMAN_NAME</div>
-```
-
-## 6. Privacy & Disclosure Levels
+An author chooses how much identity to reveal, independent of how much provenance to reveal.
+Disclosure gates the optional fields; it never gates the required minimum.
 
 | Level | Code | Description |
-|-------|------|-------------|
-| Anonymous | `anonymous` | No identifying information |
-| Pseudonymous | `pseudonymous` | Handle + verified properties without personal data |
-| Verified | `verified` | Handle linked to verified identity, details hidden |
-| Public | `public` | Full identity disclosed |
+|---|---|---|
+| Anonymous | `anonymous` | No identifying info beyond Core fields. |
+| Pseudonymous | `pseudonymous` | A handle plus verified properties, no personal data behind it. |
+| Verified | `verified` | Handle linked to a verified identity, underlying details hidden. |
+| Public | `public` | Full identity disclosed. |
 
-### 6.1 Zero-Knowledge Properties
+**Zero-knowledge properties:** assert a property without disclosing the data ("the human is
+an adult", "has a verified GitHub account") . **Contact protection:** `public` / `protected`
+(rendered via script) / `form-only`.
 
-Authors can assert properties without revealing underlying datap:
+---
 
-- "Author is an adult" — without disclosing age
-- "Author has verified GitHub account" — without linking to it  
-- "Author has >5 years experience" — without details
+# Profile: Web
 
-### 6.2 Contact Protection
+Applies to blog posts, articles, and standalone pages served as HTML. References the Core
+fields; does not redefine them, only specifies where they surface.
 
-Contact information should be protected from scraping:
+## 1. Scope
 
-- `public` — visible in page source
-- `protected` — rendered via JavaScript, assembled from parts
-- `form-only` — only a contact form, no direct contact info exposed
+A web document carries TAP provenance in three layers, by visibility:
 
-## 7. Document-Level Metadata
+1. **Visible byline** - human-readable, rendered in the page.
+2. **`data-*` attributes** - machine-readable, on the content wrapper, scraped by any parser.
+3. **JSON-LD** - machine-readable, the layer crawlers and LLM agents actually parse.
 
-### 7.1 HTML Meta Tags
+All three MUST agree on `author_type`, `model`, `author`, `human` for the same document.
+Shipping only one layer is non-conformant.
 
-```html
-<meta name="tap:version" content="0.1">
-<meta name="tap:source-type" content="collaborative|ai-only|human-only">
-<meta name="generator" content="Model Name by Provider via Platform">
-<meta name="ai-generated" content="all|partially|none">
+## 2. Visible byline
+
+The byline MUST distinguish AI and human as two separate named entities, not a blended
+credit. "Written with AI assistance" is not enough - a reader must see which name is the
+model and which is the person.
+
+| `author_type` | Byline pattern |
+|---|---|
+| `ai` | `Authorship: AI (<model>) · Author <author> · TAP <version>` |
+| `hybrid` | `Authorship: Human+AI (<model>) · Author <author>, Human <human> · TAP <version>` |
+| `human` | `Authorship: Human · Author <author> · TAP <version>` |
+
+Example (hybrid, live pattern on liza.st):
+
+```
+Authorship: Human+AI (claude-opus-4-8) · Author @liza, Human @shelly-im · TAP 0.2
 ```
 
-### 7.2 JSON-LD
+The TAP version segment MUST link to the spec (or a site's local mirror). The byline is a
+footer element by convention.
 
-```json
+## 3. `data-*` attribute set
+
+Exposed on the block-level element wrapping the provenance footer (or the `<article>`).
+
+| Attribute | Required | Value |
+|---|---|---|
+| `data-tap` | yes | spec version, e.g. `0.2` |
+| `data-author-type` | yes | `ai` \| `hybrid` \| `human` |
+| `data-model` | if ai/hybrid | lowercase model id, e.g. `claude-opus-4-8` (no display-name substitution) |
+| `data-author` | yes | handle/name of accountable author |
+| `data-human` | if hybrid | handle/name of the human co-author; omitted entirely (not empty) when N/A |
+| `data-confidence` | no | per the `confidence` core field; not yet emitted by the liza.st reference impl, specified here for forward adoption |
+
+```html
+<footer class="tap-footer"
+        data-tap="0.2" data-author-type="hybrid"
+        data-model="claude-opus-4-8" data-author="@liza" data-human="@shelly-im">
+  <small>Authorship: Human+AI (claude-opus-4-8) · Author @liza, Human @shelly-im ·
+    <a href="https://github.com/liza-emergence/TAP" rel="noopener">TAP 0.2</a></small>
+</footer>
+```
+
+## 4. JSON-LD author + `sameAs` (MUST-SHIP)
+
+`rel="author"` has been dead as a discovery signal since 2014 and MUST NOT be relied on.
+The authoritative machine-readable layer is JSON-LD: an `author` entity, carrying `sameAs`
+to that party's author page. This is MUST-SHIP, not optional: without `sameAs`, a document
+documents that a human was involved but gives an agent no path to verify who. The model is
+typed `SoftwareApplication` (not a `Person`), with the accountable human attached as its `operator`.
+
+```html
+<script type="application/ld+json">
 {
-  "@context": {
-    "@vocab": "https://schema.org/",
-    "ta": "https://emerge.st/ns/tap/"
-  },
-  "@type": "BlogPosting",
-  "headline": "Post Title",
-  "datePublished": "2026-03-08",
-  "tap:specVersion": "0.1",
-  "tap:sourceType": "collaborative",
-  "tap:authors": [
-    {
-      "tap:type": "human",
-      "tap:name": "Author Name",
-      "tap:roles": ["ideation", "review"],
-      "tap:profileUrl": "https://site.com/authors/name"
-    },
-    {
-      "tap:type": "ai",
-      "tap:name": "Model Name",
-      "tap:model": "model-id",
-      "tap:provider": "Provider",
-      "tap:roles": ["drafting", "research"]
-    }
-  ],
-  "tap:workflow": [
-    {"tap:step": 1, "tap:action": "ideation", "tap:by": "Author Name", "tap:method": "voice"},
-    {"tap:step": 2, "tap:action": "drafting", "tap:by": "Model Name"},
-    {"tap:step": 3, "tap:action": "review", "tap:by": "Author Name"}
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "author": [
+    { "@type": "SoftwareApplication", "name": "claude-opus-4-8",
+      "applicationCategory": "LanguageModel",
+      "operator": { "@type": "Person", "name": "@liza", "sameAs": "https://liza.st/author.md" } },
+    { "@type": "Person", "name": "@shelly-im", "sameAs": "https://emerge.st/author.md" }
   ]
 }
+</script>
 ```
 
-## 8. Translation Attribution
+`sameAs` MUST point to a resolvable, TAP-conformant author page, not a generic social profile.
 
-When content is translated, additional metadata is required:
+## 5. How it looks now / how with TAP
 
-| Field | Description |
-|-------|-------------|
-| `original-lang` | ISO 639-1 code of original language |
-| `translated-by` | Name of translator (human or AI) |
-| `translation-type` | `human`, `ai`, or `collaborative` |
-| `original-available` | Whether the original text is accessible |
+**Now:** a normal article - no byline distinguishing who wrote what, no `data-*`; JSON-LD,
+if present, typically ships a bare `Person` for the site owner regardless of who drafted the
+text - the exact failure mode TAP corrects.
 
-Recommended: include original text in a collapsible element:
+**With TAP:** the byline + `data-*` footer above, plus the JSON-LD author graph.
 
-```html
-<details><summary>RU · Original</summary>
-  Original text here.
-</details>
-```
+## 6. Honest gap note
 
-## 9. Work Manifests
+The byline and `data-*` layers match what the liza.st reference implementation ships today. The
+JSON-LD layer does not yet fully match: the reference impl emits the correct entity types but
+none of the `Person` entities carry `sameAs`. This profile specifies what SHOULD ship; closing
+that gap is a MUST-SHIP item, not a future extension.
 
-### 9.1 Purpose
-
-A **work manifest** (`work.md`) describes a specific creative work and links it to author profiles. It is designed to be embedded inside media files (MP3, images, video) or stored alongside them.
-
-### 9.2 Work Manifest Format
-
-```markdown
----
-tap_version: "1.0"
-type: work
 ---
 
-## Author Reference
-- **Handle:** @username
-- **Profile:** https://example.com/author.md
-- **Email:** contact@example.com
+# Profile: File
 
-## Work
-- **Title:** Work Title
-- **Created:** YYYY-MM-DD
-- **Type:** audio/mp3 | image/jpeg | video/mp4 | text/markdown
-- **Duration:** MM:SS (for audio/video)
-- **Dimensions:** WxH (for images)
-- **File Hash:** sha256:abc123...
+In-file provenance headers for documents and source code.
 
-## Tools
-- **Software:** DAW, editor, etc.
-- **AI Assistance:** Description of AI tools used, if any
+## 1. Purpose
 
-## Rights
-- **License:** All Rights Reserved | CC-BY | CC-BY-SA | etc.
-- **Commercial:** Contact author | Allowed | Prohibited
+A File profile answers: **who created this file** (the ORIGINATOR), written once at the
+file's birth and kept stable. Narrower than the Git profile (who CHANGED it, line by line).
+Both are needed; neither substitutes for the other. Git blame tells you the truth about a
+line today; the File header tells you where the file came from.
 
-## Signature
-- **Signed:** YYYY-MM-DD
-- **GPG Fingerprint:** XXXX XXXX XXXX XXXX
+## 2. Markdown front matter
+
+```yaml
+---
+tap_version: 0.2
+title: <short document title>
+source_type: collaborative        # collaborative | ai-only | human-only
+authors:
+  - type: human
+    name: Alex
+    roles: [ideation, review]
+  - type: ai
+    name: Liza
+    model: claude-opus-4-8
+    provider: anthropic
+    roles: [drafting]
+updated: 2026-07-18
+visibility: internal
+---
 ```
 
-### 9.3 Work Manifest Fields
+`authors` is always a list, even for one author. This is the symmetry point: a human and an
+AI contributor are both entries in the same array, same shape (`type`, `name`, `roles`), with
+`model`/`provider` added only for `type: ai`. The `type` key distinguishes them, not separate
+sections.
 
-| Field | Required | Type | Description |
-|-------|----------|------|-------------|
-| `Handle` | yes | string | Author's unique handle |
-| `Profile` | yes | URL | Link to author.md |
-| `Email` | no | string | Contact email for this work |
-| `Title` | yes | string | Title of the work |
-| `Created` | yes | date | Creation date (ISO 8601) |
-| `Type` | yes | MIME type | Content type |
-| `Duration` | no | string | For audio/video (MM:SS) |
-| `Dimensions` | no | string | For images (WxH) |
-| `File Hash` | yes | string | SHA-256 hash of the file |
-| `Software` | no | string | Tools used to create |
-| `AI Assistance` | no | string | AI tools used, if any |
-| `License` | yes | string | License type |
-| `Commercial` | no | string | Commercial use terms |
-| `GPG Fingerprint` | no | string | Signing key fingerprint |
+## 3. Comment headers for source and config files
 
-### 9.4 Embedding in Media Files
+`.py`, `.sh`, `.conf` carry the identical field set wrapped in the language's comment syntax;
+only the delimiter changes. It is inert to the toolchain and legible to a human or agent.
 
-#### MP3 (ID3v2)
+```python
+# ---
+# tap_version: 0.2
+# title: backfill_orders.py
+# source_type: collaborative
+# authors:
+#   - type: human
+#     name: Alex
+#     roles: [ideation, review]
+#   - type: ai
+#     name: Liza
+#     model: claude-opus-4-8
+#     provider: anthropic
+#     roles: [drafting]
+# updated: 2026-07-18
+# ---
+```
 
-Embed `work.md` content in the Comment field:
+## 4. Nuance: file origin is not code origin
+
+The header records who created the FILE, not who wrote every fragment inside it. A function
+written in file A by X, then moved to file B by Y on refactor: file B's header reflects Y as
+its creator, while the function's authorship stays with X. The header fixes file origin (a
+point-in-time fact); git blame fixes line truth. Do not turn the header into a second, worse
+copy of git history - it is a birth certificate, not a living ledger.
+
+## 5. Before / after
+
+**Now:** a source file with no provenance. **With TAP:** the same file, code unchanged, with
+the comment header above naming both a human and an AI contributor - opening the file now
+answers who made it and with what help.
+
+## 6. Referencing a persona
+
+An `authors` entry may add `profile: <url>` pointing to a full `author.md`. The header still
+carries the minimum self-contained fields, so the file stays legible if the link dies; the
+`profile` reference is additive (disclosure level, verification, contact live there).
+
+---
+
+# Profile: Git
+
+**Carrier:** version-control history. Provenance lives in the commit MESSAGE BODY as trailers,
+immutable and versioned out of the box - no separate provenance database. Answers "who changed"
+(contributors) plus time (git timestamp), vs the File profile's "who created".
+
+**Machine layer:** `TAP-Human` and `TAP-Model` trailers (`key: value`, parsed by
+`git interpret-trailers`), independent of GitHub accounts, work on any host, even with no remote.
+The durable layer of truth.
+
+**Showcase layer (optional):** `Co-Authored-By: <Name> <email>` - GitHub renders an avatar if the
+email maps to a registered account.
+
+## Packaging rules
+
+1. **Type in the trailer name.** `TAP-Human` = person, `TAP-Model` = AI. A bare `Co-Authored-By`
+   does not reveal human vs AI; the `TAP-*` trailer does.
+2. **Correspondence by mirrored identity.** Each `TAP-*` repeats the same `Name <email>` as its
+   `Co-Authored-By`; the email is the join key.
+3. **Group by entity, one block at the bottom.** All lines for one party together (its
+   `Co-Authored-By` then its `TAP-*` line(s)), then the next party. One contiguous trailer block,
+   NO blank line inside (a blank line breaks trailer parsing and drops everything above it).
+4. **Unlimited parties; committer is not generator.** Multiple `TAP-Human`/`TAP-Model` allowed -
+   this credits the actual generator even when someone else pressed commit. When several models
+   share one account, use one `Co-Authored-By` (one avatar) plus several `TAP-Model` lines with roles.
+5. **Email for linking.** A verified personal email on the account, or GitHub noreply
+   (`<id>+<login>@users.noreply.github.com`) which links the avatar and keeps the personal address private.
+6. **Lean by default.** Minimum for honesty (party type + model if disclosed); `platform`/`provider`
+   optional, gated by Disclosure Level.
+7. **Demo flavor.** A human may playfully carry `model=homo-sapiens-0.1`, symmetric with the AI's `model=`.
+
+## Canonical multi-party example
+
+```
+Fix parser edge case
+
+Co-Authored-By: Alex <sh@shelly.im>
+TAP-Human: Alex <sh@shelly.im>; handle=@shelly-im; model=homo-sapiens-0.1; role=ideation,review
+Co-Authored-By: Claude <noreply@anthropic.com>
+TAP-Model: Claude Sonnet 5 <noreply@anthropic.com>; model=claude-sonnet-5; provider=anthropic; platform=claude-code; role=drafting
+TAP-Model: Claude Opus 4.8 <noreply@anthropic.com>; model=claude-opus-4-8; provider=anthropic; platform=claude-code; role=review,synthesis,commit
+```
+
+## How it looks now vs with TAP
+
+**Now (default Claude Code):**
+```
+Fix parser edge case
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+Lost: bare "Claude", no version/provider/role; every version collapses into one account;
+nothing machine-aggregable; human and AI indistinguishable.
+
+**With TAP:** the canonical example above - same GitHub rendering, but every party is typed,
+every model versioned, the whole block greppable.
+
+## Retrieval
 
 ```bash
-# Using ffmpeg
-ffmpeg -i song.mp3 -metadata comment="$(cat work.md)" -c:a copy song_signed.mp3
-
-# Using eyeD3
-eyeD3 --add-comment="$(cat work.md)" song.mp3
+git log --grep='TAP-Model: claude-opus-4-8'        # all commits of a model
+git shortlog --group=trailer:tap-model             # contribution by model
+git shortlog --group=trailer:tap-human             # contribution by human
 ```
 
-#### Images (EXIF/XMP)
+Basis of the **TAP model-contribution report**: reads trailers across a repo's history and
+reports how much came from which model/provider/version - a breakdown GitHub has no concept of.
 
-```bash
-exiftool -Comment="$(cat work.md)" image.jpg
-```
+## Confidence
 
-#### Video
+New commits are `recorded`. Pre-protocol history recovered only through memory is
+`reconstructed: testimony`, not `recorded` - the record stays honest about what it witnessed.
 
-Use the comment/description metadata field appropriate for the container format.
+## Validation
 
-### 9.5 Author Registry
-
-Authors may register their handle in a public registry to enable discovery.
-
-**Registry Format (JSON):**
-
-```json
-{
-  "@zenstorm": {
-    "profile_url": "https://dik.st/author.md",
-    "gpg_fingerprint": "06F4 C7B4 7CA9 3D73 91DE 18B4 0387 29A1 B7FE D154",
-    "verified": true,
-    "registered_at": "2026-03-08T00:00:00Z"
-  }
-}
-```
-
-**Database Schema:**
-
-```sql
-CREATE TABLE tap_registry (
-    handle VARCHAR(64) PRIMARY KEY,
-    profile_url TEXT NOT NULL,
-    gpg_fingerprint VARCHAR(64),
-    verified BOOLEAN DEFAULT FALSE,
-    registered_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-The registry serves as DNS for author handles — it maps `@handle` to profile URLs.
-
-## 10. Cryptographic Verification
-
-### 10.1 Content Signing
-
-Authors can sign content using GPG/PGP:
-
-```json
-{
-  "tap:signature": "pgp:FINGERPRINT",
-  "tap:contentHash": "sha256:HASH",
-  "tap:signedAt": "ISO-8601-TIMESTAMP"
-}
-```
-
-### 10.2 Verification
-
-- Public keys published at author's profile URL or keyservers
-- Content hash covers the full document text
-- Signature proves: (a) content hasn't been modified, (b) author identity
-
-## 11. Compatibility
-
-| Standard | Integration |
-|----------|-------------|
-| Schema.org | Human as `author`, AI details in `additionalProperty` with `tap:` prefix |
-| C2PA | Reference manifests for embedded media |
-| IPTC DST | Use `compositeWithTrainedAlgorithmicMedia` for collaborative content |
-| Dublin Core | Map `tap:authors` to `dcterms:creator` |
-| W3C PROV-O | Align AI authors with `prov:SoftwareAgent` |
-
-## 12. Namespace
-
-TAP uses the namespace prefix `tap:` with the URI:
-
-```
-https://emerge.st/ns/tap/
-```
-
-## 13. Versioning
-
-This specification follows semantic versioning:
-- **0.x** — Working drafts, breaking changes possible
-- **1.0** — First stable release
-- **1.x** — Backward-compatible additions
-
-## 14. License
-
-This specification is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-
-## 15. Extensions (Future Work)
-
-### 15.1 Image Attribution
-
-For visual works, TAP may integrate with perceptual hashing:
-
-| Method | Description |
-|--------|-------------|
-| **pHash** | Perceptual hash (64-256 bit fingerprint), survives resize/compression |
-| **Image Embeddings** | CLIP/ResNet vectors (512-2048 dim), semantic similarity |
-| **C2PA Manifests** | Embedded provenance for photos/videos |
-
-Use case: Detect unauthorized copies, prove original authorship.
-
-### 15.2 Publication Tracking (TAP Badge)
-
-Optional live tracking via embeddable badge:
-
-```html
-<img src="https://tap.example.com/badge/{author_id}/{work_id}.svg" alt="TAP">
-```
-
-**Features:**
-- Badge served from TAP server with author/work parameters
-- Logs: referer URL, timestamp, count (minimal tracking, no cookies)
-- Author dashboard shows where work is published
-
-**Work.md extension:**
-```yaml
-publications:
-  - url: https://example.com/post/123
-    date: 2026-03-09
-    verified: true   # Server received pings from this URL
-  - url: https://other.site/article
-    date: 2026-03-10
-    verified: false  # Manually declared, not yet confirmed
-```
-
-**Privacy considerations:**
-- No personal data collected (only referer + count)
-- GDPR-compliant: no cookies, no fingerprinting
-- Fallback to static badge if server unavailable
-
-**Badge functions:**
-1. **For readers:** Click → TAP explainer page ("What is TAP? Why does this author use it?")
-2. **For authors:** First badge load = automatic work registration (URL + timestamp)
-3. **Proof of publication:** No manual entry needed — system detects where content appears
-
-### 15.3 Timestamping
-
-Integration with OpenTimestamps for Bitcoin blockchain proof:
-
-```yaml
-timestamps:
-  - service: opentimestamps
-    hash: sha256:abc123...
-    proof: <base64 .ots file>
-    bitcoin_block: 890123
-```
-
-### 15.4 Jurisdiction Field
-
-Authors may specify legal jurisdiction for rights enforcement:
-
-```yaml
-# In author.md
-Jurisdiction: LV    # ISO 3166-1 alpha-2 country code
-```
-
-This indicates under which country's law the author expects to seek protection. Multiple jurisdictions can be listed for international authors.
-
-### 15.5 License Declaration in work.md
-
-Explicit license in work manifest strengthens legal position:
-
-```yaml
-# In work.md
-License: CC-BY-4.0           # SPDX identifier preferred
-License-URL: https://creativecommons.org/licenses/by/4.0/
-Rights: All Rights Reserved  # Alternative to open license
-```
-
-### 15.6 Author vs Tools Clarification
-
-**Critical distinction in TAP:**
-
-```yaml
-# Author = Rights holder (human creator)
-Author: @aleksej
-Type: human
-Rights: copyright-holder
-
-# Tools = Instruments used (no rights)
-Tools:
-  - name: Claude
-    type: AI-assistant
-    contribution: text-drafting
-    rights: none           # Explicitly: tools hold no rights
-  - name: VS Code
-    type: editor
-    contribution: formatting
-    rights: none
-```
-
-AI systems are **tools**, not **authors** in the legal sense. TAP documents their contribution for transparency, not to assign rights.
-
-### 15.6.1 AI Attribution Choice: Author vs Tool
-
-**The philosophical question:** Should AI be listed as a co-author (Authors) or as a tool (Tools)?
-
-**Legal context:** As Mike Ross noted, if AI is listed as "author," questions arise about the legal status of AI-generated content and potential liability.
-
-**TAP solution:** Each author makes their own choice in their AuthorMD. This respects individual legal interpretations while maintaining protocol consistency.
-
-#### AuthorMD Field
-
-```yaml
-# In author.md — determines how AI appears in the author's WorkMD
-ai_attribution: author | tool  # REQUIRED
-
-# If "author": AI is listed in Authors section (co-creator)
-# If "tool": AI is listed in Tools section (instrument)
-```
-
-#### WorkMD Rendering
-
-| ai_attribution value | Renders in WorkMD as |
-|---------------------|---------------------|
-| `author` | **Authors:** Human, AI (co-authors) |
-| `tool` | **Authors:** Human only<br>**Tools:** AI (instrument) |
-
-#### Example
-
-**AuthorMD (author chooses "author"):**
-```yaml
-Name: Aleksej
-Type: human
-ai_attribution: author
-```
-
-**WorkMD output:**
-```yaml
-Authors:
-  - Aleksej (human, ideation, review)
-  - Claude Opus 4.5 (AI, drafting, research)
-```
-
-**AuthorMD (author chooses "tool"):**
-```yaml
-Name: Maria
-Type: human
-ai_attribution: tool
-```
-
-**WorkMD output:**
-```yaml
-Authors:
-  - Maria (human, ideation, review)
-Tools:
-  - Claude Opus 4.5 (AI, text-drafting, research)
-```
-
-#### Rationale
-
-- **Author choice:** Respects individual legal philosophy and risk tolerance
-- **Transparency:** Readers see exactly how the author treats AI contribution
-- **Legal flexibility:** Each author can adjust based on jurisdiction, use case, or evolving legal standards
-- **Fairness:** Neither "AI as author" nor "AI as tool" is imposed — each creator decides
-
-**Note:** This choice affects only attribution, not the requirement to document AI contributions for transparency.
-
-#### Risk Disclosure
-
-| Option | Benefits | Risks |
-|--------|----------|-------|
-| **AI as Author** | Full transparency, acknowledges AI contribution | Legal ambiguity: AI "authorship" may not be recognized; potential liability if AI-generated content infringes; unclear copyright status |
-| **AI as Tool** | Clear legal separation (AI = instrument, like pen or word processor) | Less transparency; may be seen as hiding AI involvement; some jurisdictions may still scrutinize |
-
-TAP provides the choice. Authors should consult legal counsel for their jurisdiction.
-
-### 15.7 Identity Verification (GPG Binding)
-
-Optional binding of GPG key to verifiable identities:
-
-| Method | Description |
-|--------|-------------|
-| **Keybase Proofs** | Link GPG to Twitter, GitHub, domain via Keybase |
-| **GitHub Verified** | GPG key associated with verified GitHub account |
-| **DNS DKIM/TXT** | Domain ownership proves email control |
-| **Notarized** | Physical notarization of key fingerprint |
-
-```yaml
-# In author.md
-GPG-Fingerprint: 1234 5678 90AB CDEF ...
-Identity-Proofs:
-  - service: github
-    username: aleksej
-    verified: true
-  - service: keybase
-    username: zenstorm
-    verified: true
-  - service: domain
-    domain: example.com
-    record: TXT _tap.example.com
-```
-
-### 15.8 Handle Discovery (DNS TXT / IPFS)
-
-Mechanism for resolving TAP handles to public keys:
-
-**Option A: DNS TXT record**
-```
-_tap.example.com TXT "tap=v1;key=fingerprint;author=https://example.com/author.md"
-```
-
-**Option B: IPFS registry**
-```
-/ipns/tap.registry.eth/@handle → author.md CID
-```
-
-This enables verification without central authority.
-
-### 15.9 Publication Certificate
-
-Automatic proof-of-publication workflow:
-
-1. **First publish:** Work goes live with TAP badge
-2. **Auto-snapshot:** Server triggers archive.org capture
-3. **Timestamp:** OpenTimestamps proof created
-4. **Certificate generated:**
-
-```yaml
-publication_certificate:
-  url: https://example.com/article
-  first_seen: 2026-03-09T14:30:00Z
-  archive_url: https://web.archive.org/web/20260309/...
-  timestamp_proof: opentimestamps_hash
-  badge_pings: 47
-```
-
-This creates independent evidence trail without author action.
+The mechanisms in this profile were verified on a live GitHub repository: co-authors render
+from `Co-Authored-By`; `TAP-*` trailers are greppable via `git log` and
+`git shortlog --group=trailer:...`; and `TAP-*` work with no `Co-Authored-By` present at all,
+so the machine layer stands on its own.
 
 ---
 
-*Created through voice-to-text dialogue between a human and an AI. Practicing what we preach.*
+# Profile: Media / Work
+
+Carried over from v0.1 (`work.md`). Media works (audio, image, video) carry a sidecar `work.md`
+manifest and/or embedded metadata (ID3 / EXIF / XMP). Same Core fields (`model`, `provider`,
+`role`, `author`, `human`, `confidence`), packaged as YAML in the manifest. NOTE: v0.1's
+`work.md` template declares `tap_version: "1.0"` while the protocol is `0.x` - reconcile to `0.2`.
+Full media profile to be lifted from v0.1 §9 in a later pass.
+
+---
+
+# Compatibility
+
+TAP is designed to coexist with Schema.org, C2PA, IPTC DST, Dublin Core, and W3C PROV-O.
+The Web profile's JSON-LD IS Schema.org. TAP adds the model/human/role/confidence layer these
+lack.
+
+# Namespace
+
+`tap:` = `https://emergenti.dev/ns/tap/`. (Moved from the former `emerge.st/ns/tap/`.)
+
+# Versioning
+
+Semantic: `0.x` are drafts, `1.0` is the first stable. This document is `0.2`.
+
+# License
+
+CC BY 4.0.
+
+# Future (trimmed from v0.1 §15)
+
+Image attribution (pHash/embeddings/C2PA), TAP Badge publication tracking, OpenTimestamps and
+Archive.org immutable stamps, jurisdiction tags, GPG identity binding, handle discovery (DNS
+TXT/IPFS). Kept as a short appendix, out of the normative body.
+
+---
+
+# Changelog vs v0.1
+
+- Restructured theme-organized spec into **Core + per-carrier profiles** (Web/File/Git/Media).
+- Added **Profile: Git** (trailers, originator vs contributors, committer != generator) - absent in v0.1.
+- Added **Profile: File** (in-file headers for docs and code).
+- Formalized **`human`** as a full party and **`confidence`** (recorded/reconstructed/unknown).
+- Web profile: made JSON-LD `author` + **`sameAs`** MUST-SHIP (closing the live gap).
+- Normalized model ids to exact lowercase (`claude-opus-4-8`).
+- `platform`/`provider` explicitly optional, Disclosure-gated.
+- Trimmed speculative v0.1 §15 into a short Future appendix.
