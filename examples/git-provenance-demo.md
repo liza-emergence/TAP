@@ -7,3 +7,5 @@ This branch is disposable.
 - variant B line
 
 - variant C line
+
+- variant D line (no co-author, TAP fields only)
