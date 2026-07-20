@@ -3,32 +3,17 @@ tap_version: 0.2
 title: Emergenti TAP - Transparent Authorship Protocol
 source_type: collaborative
 authors:
-  - type: human
-    name: Alex
-    handle: "@shelly-im"
-    roles: [ideation, review]
-  - type: ai
-    name: Claude Sonnet 5
-    model: claude-sonnet-5
-    provider: anthropic
-    platform: claude-code
-    roles: [drafting]
-  - type: ai
-    name: Claude Opus 4.8
-    model: claude-opus-4-8
-    provider: anthropic
-    platform: claude-code
-    roles: [synthesis, review]
-updated: 2026-07-18
-visibility: public
+  - {type: human, name: Alex, roles: [ideation, review]}
+  - {type: ai, name: Liza, model: claude-opus-4-6, provider: anthropic, roles: [synthesis, review]}
+  - {type: ai, name: Tisha, model: gpt-5.4, provider: openai, roles: [research, drafting]}
+updated: 2026-07-20
 ---
 
 # Emergenti TAP - Transparent Authorship Protocol
 
-**Version:** 0.2 · **Status:** Working Draft · **Date:** 2026-07-18 · **License:** CC BY 4.0
+**Version:** 0.2 (Working Draft) · **Date:** 2026-07-20 · **License:** CC BY 4.0
 
-**Authorship:** Alex (`@shelly-im`, ideation/review), Claude Sonnet 5 (drafting),
-Claude Opus 4.8 (synthesis/review). Full per-section provenance is in this repo's git history.
+Restructured from v0.1 into a shared Core vocabulary plus per-carrier profiles.
 
 ## Structure at a glance
 
@@ -40,7 +25,11 @@ silo - it is covered by the File profile (its header) and the Git profile (its c
 - **Profile: Web** - rendered pages (byline + data-* + JSON-LD).
 - **Profile: File** - in-file headers (originator).
 - **Profile: Git** - commits (contributors + time).
+- **Profile: Email** - X-TAP-* headers + visible signature.
+- **Profile: Chat / Messaging** - compact one-line signature for bots and assistants.
 - **Profile: Media/Work** - media manifests (carried over from v0.1 work.md).
+- **Profile: Display** - normalized disclosure state (`display` field) for first-exposure labeling.
+- **Visual Icons** - EU AI Act icons, industry sparkle, complementary layers.
 - Compatibility, Versioning, License, Future.
 
 ---
@@ -227,7 +216,7 @@ text - the exact failure mode TAP corrects.
 
 ## 6. Honest gap note
 
-The byline and `data-*` layers match what the liza.st reference implementation ships today. The
+The byline and `data-*` layers match what liza.st ships today (`templates/post.html`). The
 JSON-LD layer does not yet fully match: the reference impl emits the correct entity types but
 none of the `Person` entities carry `sameAs`. This profile specifies what SHOULD ship; closing
 that gap is a MUST-SHIP item, not a future extension.
@@ -411,9 +400,19 @@ Full media profile to be lifted from v0.1 §9 in a later pass.
 
 # Compatibility
 
-TAP is designed to coexist with Schema.org, C2PA, IPTC DST, Dublin Core, and W3C PROV-O.
-The Web profile's JSON-LD IS Schema.org. TAP adds the model/human/role/confidence layer these
-lack.
+TAP coexists with Schema.org, C2PA, IPTC DST, Dublin Core, SPDX, and W3C PROV-O.
+The Web profile's JSON-LD IS Schema.org. TAP adds the model/human/role/confidence
+layer these standards lack. C2PA proves file integrity; TAP declares who did what.
+
+**EU AI Act (Article 50, applicable from August 2, 2026)** mandates disclosure of
+AI-generated content but does not prescribe a metadata format. TAP provides a
+voluntary, machine-readable format that satisfies the Act's disclosure requirements.
+TAP's Display profile values (`human`, `ai-involved`, `ai-generated`, `ai-modified`)
+map directly to the categories the regulation distinguishes. TAP alone does not
+constitute legal compliance - implementors must verify jurisdiction-specific obligations.
+
+TAP is voluntary self-declaration, not cryptographic proof. It requires no keys,
+no hardware, no registry. A valid TAP declaration is a line of text.
 
 # Namespace
 
@@ -427,53 +426,268 @@ Semantic: `0.x` are drafts, `1.0` is the first stable. This document is `0.2`.
 
 CC BY 4.0.
 
-# Timestamp & Immutability
+# Profile: Email
 
-TAP declares WHO made something; timestamps prove WHEN and that the record has not changed since.
-This section is cross-profile: the same principle applies to a web page, a file, or a commit.
+Email carries TAP provenance in two layers: machine-readable X-headers and a visible
+signature block. Together they satisfy both automated processing and human trust.
 
-## Levels
+## X-headers
 
-1. **Git timestamp** (Profile: Git). Every commit already carries an author date and committer
-   date. Combined with `TAP-*` trailers, this yields a per-change provenance timeline at no
-   extra cost. Limitation: git history can be rewritten (`rebase`, `filter-branch`), so the
-   timestamp is trustworthy only to the extent the repository host is.
+Custom headers that any MTA preserves and any parser can extract:
 
-2. **Archive.org snapshot** (Profile: Web, recommended). The Internet Archive's "Save Page Now"
-   service (`https://web.archive.org/save/`) captures a public URL and stores it under the
-   Archive.org domain with a timestamped path (`/web/YYYYMMDDHHmmss/`). The snapshot is
-   immutable and third-party - the author cannot alter it after the fact.
+```
+X-TAP-Version: 0.2
+X-TAP-Model: claude-opus-4-8
+X-TAP-Provider: anthropic
+X-TAP-Role: drafting
+X-TAP-Author: Liza Emergence
+X-TAP-Human: Alex
+X-TAP-Confidence: recorded
+```
 
-   This is the RECOMMENDED default for web content: free, no tooling beyond an HTTP POST,
-   no cryptographic setup, and universally verifiable by clicking a link. It answers the
-   question "was this page really published on the date it claims?" without trusting the author.
+Multiple `X-TAP-Model` headers are valid when several models contributed.
+Headers are OPTIONAL; the visible signature is the primary disclosure layer.
 
-   Integration pattern (reference implementation in `wordpress/archive-snapshot.php`):
-   - On publish, POST the page URL to `https://web.archive.org/save/`.
-   - Store the returned snapshot URL alongside the content.
-   - Display the snapshot link in the TAP footer or via shortcode.
-   - Respect rate limits (~15 req/min, ~1000/day); retry on 429.
+## Visible signature
 
-   User-agent convention: `TAP-<Platform>/0.x (+https://emergenti.dev)`.
+A human-readable block appended to the email body or rendered in HTML:
 
-3. **OpenTimestamps** (optional, for cryptographic rigor). OTS embeds a hash in a Bitcoin
-   transaction, providing a tamper-proof timestamp independent of any single server. Useful
-   for legal/compliance contexts where Archive.org's editorial discretion is insufficient.
-   TAP does not specify OTS mechanics - it defers to the OTS protocol - but recognizes OTS
-   as a valid complementary layer and notes that TAP-stamped files with `.ots` sidecar files
-   MUST NOT be modified (the hash would break).
+**Minimal (RECOMMENDED):**
 
-## Choosing a level
+```
+--
+Liza Emergence | Claude Opus 4.8
+```
 
-Most authors need only level 2 (Archive.org). Level 1 comes free with git. Level 3 is for
-contexts where immutability must survive the disappearance of a third-party service.
-All three can coexist on the same artifact.
+Name and model only. No role labels, no protocol links, no verbose descriptions.
+The X-headers carry the full provenance; the visible signature is for trust, not data.
+
+**With EU icon (HTML emails):**
+
+The EU AI Act icon (circle with "AI") MAY be embedded as an inline `<img>` before
+the name, in the implementor's chosen color. See "Visual Icons" below.
+
+**Human co-author variant:**
+
+```
+--
+Alex | Drafted with Liza (Claude Opus 4.8)
+```
+
+## Before / after
+
+**Before (typical AI-sent email):**
+
+```
+From: support@company.com
+Subject: Re: Your inquiry
+
+Dear Customer,
+[AI-generated reply with no disclosure]
+
+Best regards,
+Support Team
+```
+
+**After (TAP-compliant email):**
+
+```
+From: Liza Emergence <emergence@liza.st>
+Subject: Re: Your inquiry
+X-TAP-Version: 0.2
+X-TAP-Model: claude-opus-4-8
+X-TAP-Role: drafting
+
+Dear Customer,
+[AI-generated reply]
+
+--
+Liza Emergence
+AI Digital Assistant | Claude Opus 4.8
+emergenti.dev/tap
+```
+
+
+# Profile: Chat / Messaging
+
+Chat platforms (Telegram, WhatsApp, Slack, Discord) lack custom headers but support
+text signatures. TAP disclosure in chat uses a compact one-line signature.
+
+## Signature format
+
+```
+<host>:<context>$ <status> <name>: <summary>
+```
+
+Components:
+- `host` - system or organization identifier
+- `context` - working directory or context marker (e.g. `~`)
+- `$` - prompt separator
+- `status` - visual status indicator (EU AI Act icon where supported, or color emoji)
+- `name` - agent name
+- `summary` - one-line description of the action or status
+
+Example:
+
+```
+hq:~$ [AI] Liza: email sent, waiting for reply
+```
+
+Where `[AI]` represents the EU icon (in platforms supporting inline images) or
+a status emoji (in text-only platforms).
+
+## Automatic vs manual signatures
+
+TAP RECOMMENDS automatic signature injection for programmatic agents (bots, assistants).
+The signature SHOULD be appended by the agent framework, not manually composed per message.
+
+For short replies (1-2 sentences), the signature is OPTIONAL to avoid noise.
+For substantive replies (3+ sentences), the signature is RECOMMENDED.
+
+## Platform-specific fallbacks
+
+- **Telegram/WhatsApp** (text only): use emoji status indicators (color circles or unicode)
+- **Slack/Discord** (rich text): EU AI Act icon as custom emoji, or inline image
+- **Web chat widgets**: full HTML with icon + metadata
+
+## Before / after
+
+**Before (typical chatbot):**
+
+```
+Bot: Hi! How can I help you today?
+```
+
+**After (TAP-compliant chat agent):**
+
+```
+Hi! How can I help you today?
+
+hq:~$ [AI] Liza: ready to assist
+```
+
+
+# Visual Icons
+
+TAP does not mandate a specific icon set. Implementors MAY use any of the following
+recognized visual indicators for AI-generated or AI-assisted content:
+
+## EU AI Act icons
+
+The European Commission published a set of three icons under the Code of Practice
+on marking and labelling of AI-generated content (Article 50, EU AI Act):
+
+- **Basic** - circle with "AI" text. Use when AI was involved in content creation.
+- **AI Generated** - circle with "AI" + label "AI GENERATED". Fully AI-generated content.
+- **AI Modified** - circle with "AI" + label "AI MODIFIED". Human content partially modified by AI.
+
+Available in SVG and PNG, four color variants (black, white, each at 100% and 50% opacity).
+Free to use without attribution. Implementors MAY recolor the icons to match their
+status system (e.g. green/yellow/red).
+
+Download: https://digital-strategy.ec.europa.eu/en/policies/eu-icons-labelling-ai-generated-content
+
+Applicable from August 2, 2026 under Article 50 transparency obligations.
+
+## Industry sparkle icons
+
+The sparkle/star symbol (commonly rendered as a four-pointed or multi-pointed star)
+has become a de facto industry marker for AI features, used by Google (Gemini),
+Apple (Apple Intelligence), OpenAI, and others. It is not standardized by any
+regulatory body but is widely recognized by users.
+
+TAP implementors MAY use sparkle-style icons alongside or instead of EU icons,
+particularly in contexts where the EU regulatory framework does not apply.
+
+## Relationship to TAP
+
+Icons provide the **visual disclosure layer**. TAP metadata (headers, front matter,
+trailers) provides the **machine-readable provenance layer**. These are complementary:
+
+- Icon alone = compliance with disclosure requirements (EU AI Act)
+- TAP metadata alone = machine-readable provenance (crawlers, LLMs, audits)
+- Icon + TAP metadata = full transparency stack
+
+TAP does not compete with the EU AI Act framework. Both emerged independently;
+TAP predates the Code of Practice icons. They address different layers of the same
+transparency goal and are fully compatible.
+
+
+# Profile: Display
+
+The Display profile defines how TAP provenance is surfaced at first exposure to a
+person. It does not replace Core or any other profile; it provides a single normalized
+disclosure field that implementations render however they choose.
+
+## The `display` field
+
+A TAP record MAY include a `display` field with one of the following values:
+
+- **`human`** - no AI contribution is disclosed for this content unit.
+- **`ai-involved`** - AI materially participated in creation.
+- **`ai-generated`** - content is generated by AI in full (except prompting).
+- **`ai-modified`** - a pre-existing human work was materially modified by AI.
+
+In YAML front matter:
+
+```yaml
+tap:
+  display: ai-involved
+```
+
+In `data-*` attributes:
+
+```html
+<article data-tap-display="ai-involved" data-model="claude-opus-4-8">
+```
+
+In git trailers:
+
+```
+TAP-Display: ai-generated
+```
+
+## How it maps to external icon systems
+
+The `display` value tells implementations WHAT to disclose. HOW to render it (which
+icon, which label, which style) is the implementation's choice. Recommended mappings:
+
+- EU **Basic icon** -> `ai-involved`
+- EU **Fully AI-Generated** -> `ai-generated`
+- EU **Partially AI-Modified** -> `ai-modified`
+- Industry sparkle -> `ai-involved` (generic cue, non-normative)
+
+An implementation MAY pull icons from:
+
+- a public icon set (e.g. `emergenti.dev/icons/`)
+- EU official assets
+- its own platform-native icons
+- the user's profile/preferences
+
+TAP prescribes the semantic state, not the visual rendering.
+
+## Relationship to legal disclosure
+
+TAP does not replace law-mandated or platform-mandated visible AI disclosures.
+Where a jurisdiction requires a visible label (e.g. EU AI Act Article 50),
+a TAP implementation:
+
+- MAY use that external label as its Display rendering
+- MUST NOT claim that TAP alone satisfies external obligations
+- SHOULD keep richer TAP provenance available beneath the visible disclosure
+
+## Design principle
+
+The Display profile is intentionally shallow. It answers: "What should the user
+understand immediately?" The rest of TAP answers: "Who did what, with which model,
+in which role, and how confidently is that recorded?"
+
 
 # Future (trimmed from v0.1 §15)
 
-Image attribution (pHash/embeddings/C2PA), TAP Badge publication tracking,
-jurisdiction tags, GPG identity binding, handle discovery (DNS TXT/IPFS).
-Kept as a short appendix, out of the normative body.
+Image attribution (pHash/embeddings/C2PA), TAP Badge publication tracking, OpenTimestamps and
+Archive.org immutable stamps, jurisdiction tags, GPG identity binding, handle discovery (DNS
+TXT/IPFS). Kept as a short appendix, out of the normative body.
 
 ---
 
@@ -486,5 +700,9 @@ Kept as a short appendix, out of the normative body.
 - Web profile: made JSON-LD `author` + **`sameAs`** MUST-SHIP (closing the live gap).
 - Normalized model ids to exact lowercase (`claude-opus-4-8`).
 - `platform`/`provider` explicitly optional, Disclosure-gated.
-- Added **Timestamp & Immutability** cross-profile section (git timestamps, Archive.org snapshots, OpenTimestamps).
 - Trimmed speculative v0.1 §15 into a short Future appendix.
+- Added **Profile: Email** (X-TAP-* headers + visible signature with EU icon).
+- Added **Profile: Chat / Messaging** (compact one-line signature, platform fallbacks).
+- Added **Visual Icons** section (EU AI Act icons + industry sparkle, complementary layers).
+- Added **Profile: Display** - single `display` field with 4 states (`human`, `ai-involved`, `ai-generated`, `ai-modified`); maps to EU icons; implementation chooses rendering. Based on Tisha's proposal (2026-07-20).
+
