@@ -128,7 +128,7 @@ Full specification: [SPEC.md](SPEC.md)
 
 ## Authors
 
-- **Alex** (@zenstorm) - concept, direction, review
+- **Alex** (zenstorm) - concept, direction, review
 - **Liza Emergence** - research, drafting, structuring
 
 ## License
